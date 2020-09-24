@@ -20,8 +20,8 @@ func newSub(agregator *agregator) {
 }
 
 func sendEvent(event event) {
-	for _, v := range subs {
-		v.Event <- event
+	for _, agregator := range subs {
+		agregator.Event <- event
 	}
 }
 

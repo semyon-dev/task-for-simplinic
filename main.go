@@ -55,16 +55,16 @@ func main() {
 
 	wg.Add(len(config.Generators))
 	for _, generator := range config.Generators {
-		c := make(chan bool, 1)
-		geratorsS = append(geratorsS, c)
-		go generator.new(wg, c)
+		chanStop := make(chan bool, 1)
+		geratorsS = append(geratorsS, chanStop)
+		go generator.new(wg, chanStop)
 	}
 
 	// react to SIGINT UNIX signal
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, os.Kill)
+	chanForceExit := make(chan os.Signal, 1)
+	signal.Notify(chanForceExit, os.Interrupt, os.Kill)
 	go func() {
-		<-c
+		<-chanForceExit
 		sendEvent(exit)
 		for i := 0; i < len(geratorsS); i++ {
 			geratorsS[i] <- true
