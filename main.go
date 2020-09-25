@@ -39,25 +39,29 @@ func main() {
 	dataSources.data = map[string]*dataSource{}
 
 	// filling generators
-	for _, generator := range config.Generators {
-		for i := 0; i < len(generator.DataSources); i++ {
-			dataSources.data[generator.DataSources[i].ID] = &generator.DataSources[i]
+	for y := 0; y < len(config.Generators); y++ {
+		for i := 0; i < len(config.Generators[y].DataSources); i++ {
+			dataSources.data[config.Generators[y].DataSources[i].ID] = &config.Generators[y].DataSources[i]
 		}
 	}
 
 	wg := new(sync.WaitGroup)
 
-	for _, agregator := range config.Agregators {
-		agregator.new(wg)
+	for i := 0; i < len(config.Agregators); i++ {
+		cEvent := make(chan event)
+		cStart := make(chan event, 1)
+		config.Agregators[i].Event = cEvent
+		config.Agregators[i].Start = cStart
+		config.Agregators[i].newAg(wg)
 	}
 
 	var geratorsS []chan bool
 
 	wg.Add(len(config.Generators))
-	for _, generator := range config.Generators {
+	for i := 0; i < len(config.Generators); i++ {
 		chanStop := make(chan bool, 1)
 		geratorsS = append(geratorsS, chanStop)
-		go generator.new(wg, chanStop)
+		go config.Generators[i].new(wg, chanStop)
 	}
 
 	// react to SIGINT UNIX signal
@@ -75,6 +79,7 @@ func main() {
 }
 
 func (generator generator) new(wg *sync.WaitGroup, stopForce chan bool) {
+
 	countGenerators++
 
 	stop := time.NewTimer(time.Second * time.Duration(generator.TimeoutS))
@@ -94,7 +99,7 @@ func (generator generator) new(wg *sync.WaitGroup, stopForce chan bool) {
 		case <-tick.C:
 			// tick that sends a signal to complete the job every sendPeriodS seconds
 			for dataID := range dataSources.data {
-				increaseValue(dataID)
+				increaseValue(dataID, wg)
 			}
 		case <-stopForce:
 			return
@@ -102,11 +107,12 @@ func (generator generator) new(wg *sync.WaitGroup, stopForce chan bool) {
 	}
 }
 
-func increaseValue(dataSourceID string) {
+func increaseValue(dataSourceID string, wg *sync.WaitGroup) {
 	dataSources.Lock()
 	dataSources.data[dataSourceID].Value += float64(rand.Intn(dataSources.data[dataSourceID].MaxChangeStep))
-	sendData(*dataSources.data[dataSourceID])
 	dataSources.Unlock()
+	wg.Add(1)
+	go sendData(dataSources.data[dataSourceID], wg)
 }
 
 func closeGenerator() {

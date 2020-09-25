@@ -11,29 +11,28 @@ var messageQueue = list.New()
 var messageQueueMaxSize int
 var m sync.Mutex
 
-var subs []agregator
+var subs []*agregator
 
-func newSub(agregator *agregator) {
-	cEvent := make(chan event)
-	agregator.Event = cEvent
-	subs = append(subs, *agregator)
+func (ag *agregator) newSub() {
+	subs = append(subs, ag)
 }
 
 func sendEvent(event event) {
-	for _, agregator := range subs {
-		agregator.Event <- event
+	for a := 0; a < len(subs); a++ {
+		subs[a].Event <- event
 	}
 }
 
-func sendData(source dataSource) {
-	for _, v := range subs {
-		for _, id := range v.SubIds {
-			if id == source.ID {
-				err := add(source)
+func sendData(source *dataSource, wg *sync.WaitGroup) {
+	defer wg.Done()
+	for i := 0; i < len(subs); i++ {
+		for y := 0; y < len(subs[i].SubIds); y++ {
+			if subs[i].SubIds[y] == source.ID {
+				err := add(*source)
 				if err != nil {
 					log.Println(err)
 				}
-				v.addData(source)
+				subs[i].addData(source)
 				remove()
 				break
 			}

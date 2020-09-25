@@ -1,13 +1,13 @@
 {
   "generators": [
     {
-      "timeout_s": 20,
-      "send_period_s": 2,
+      "timeout_s": 55,
+      "send_period_s": 1,
       "data_sources": [
         {
           "id": "data_1",
           "init_value": 1,
-          "max_change_step": 3
+          "max_change_step": 7
         },
         {
           "id": "data_2",
@@ -17,13 +17,13 @@
       ]
     },
     {
-      "timeout_s": 11,
+      "timeout_s": 23,
       "send_period_s": 1,
       "data_sources": [
         {
           "id": "data_7",
           "init_value": 1,
-          "max_change_step": 3
+          "max_change_step": 5
         },
         {
           "id": "data_4",
@@ -44,17 +44,23 @@
         "data_1",
         "data_2"
       ],
-      "agregate_period_s": 7
+      "agregate_period_s": 3
     },
     {
       "sub_ids": [
         "data_3"
       ],
-      "agregate_period_s": 2
+      "agregate_period_s": 3
+    },
+    {
+      "sub_ids": [
+        "data_7"
+      ],
+      "agregate_period_s": 4
     }
   ],
   "queue": {
-    "size": 10
+    "size": 100
   },
-  "storage_type": 0
+  "storage_type": 1
 }

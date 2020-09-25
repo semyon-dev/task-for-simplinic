@@ -25,9 +25,7 @@ func writeData(wg *sync.WaitGroup, c chan avgData, cStop chan bool) {
 
 	wg.Add(1)
 	go func() {
-		defer func() {
-			wg.Done()
-		}()
+		defer wg.Done()
 		for {
 			select {
 			case <-cStop:
@@ -38,14 +36,13 @@ func writeData(wg *sync.WaitGroup, c chan avgData, cStop chan bool) {
 					log.Println(err)
 				}
 				res = append(res, '\n')
-
 				if isFileStorage {
 					_, err = file1.Write(res)
 					if err != nil {
 						log.Println(err)
 					}
 				} else {
-					fmt.Println(string(res))
+					fmt.Print(string(res))
 				}
 			}
 		}

@@ -20,10 +20,10 @@ type generator struct {
 }
 
 type agregator struct {
-	SubIds          []string `json:"sub_ids"`
-	AgregatePeriodS int      `json:"agregate_period_s"`
-	Chan            chan dataSource
-	Event           chan event
+	SubIds          []string   `json:"sub_ids"`
+	AgregatePeriodS int        `json:"agregate_period_s"`
+	Event           chan event // notify about events
+	Start           chan event // notify about start
 }
 
 type config struct {
